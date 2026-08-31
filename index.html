@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Baskı Maliyet ve Satış Fiyatı Hesaplayıcı</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-green: #22c55e;
+            --accent-purple: #a855f7;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --accent-orange: #f97316;
+            --input-bg: #0f172a;
+            --input-border: #475569;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            color: var(--accent-blue);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 900px) {
+            .grid-layout {
+                grid-template-columns: 1.1fr 0.9fr;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        input, select {
+            width: 100%;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-main);
+            padding: 9px 12px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .unit {
+            position: absolute;
+            right: 12px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            pointer-events: none;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background-color: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .stat-card.highlight {
+            border-color: var(--accent-green);
+            background-color: rgba(34, 197, 94, 0.1);
+        }
+
+        .stat-card.highlight-price {
+            border-color: var(--accent-blue);
+            background-color: rgba(56, 189, 248, 0.1);
+        }
+        
+        .stat-card.highlight-warning {
+            border-color: var(--accent-rose);
+            background-color: rgba(244, 63, 94, 0.1);
+        }
+
+        .stat-label {
+            font-size: 0.70rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .stat-card.highlight .stat-value {
+            color: var(--accent-green);
+        }
+
+        .stat-card.highlight-price .stat-value {
+            color: var(--accent-blue);
+        }
+        
+        .stat-card.highlight-warning .stat-value {
+            color: var(--accent-rose);
+        }
+
+        /* Cost Breakdown Table */
+        .breakdown-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.85rem;
+        }
+
+        .breakdown-table th, .breakdown-table td {
+            padding: 10px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .breakdown-table th {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .breakdown-table td:last-child {
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .kdv-box {
+            background-color: rgba(249, 115, 22, 0.05);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .kdv-box h4 {
+            color: var(--accent-orange);
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .kdv-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+        }
+
+        .kdv-row.total {
+            border-top: 1px dashed rgba(249, 115, 22, 0.3);
+            margin-top: 8px;
+            padding-top: 8px;
+            font-weight: bold;
+            color: var(--accent-orange);
+            font-size: 0.95rem;
+        }
+
+        .btn {
+            background-color: var(--accent-blue);
+            color: #0f172a;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--card-border);
+        }
+        
+        .saved-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .saved-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+        }
+
+        .saved-item-title {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .saved-item-sub {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--accent-rose);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 2px 6px;
+        }
+
+        .badge {
+            background-color: var(--accent-purple);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        @media print {
+            body { background: white; color: black; }
+            .card { border: 1px solid #ccc; background: white; color: black; box-shadow: none; }
+            input, select { border: 1px solid #ccc; background: white; color: black; }
+            .btn, .no-print { display: none !important; }
+            .stat-value, .card-title { color: black !important; }
+            .kdv-box { background-color: #f9f9f9; border-color: #ddd; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🖨️ 3D Baskı Maliyet & Satış Fiyatı Hesaplayıcı <span class="badge">SHOPIER UYUMLU</span></h1>
+        <p>KDV dahil fiyat üzerinden komisyon hesabı ve KDV mahsuplaşma analizi</p>
+    </header>
+
+    <div class="grid-layout">
+        <!-- SOL KOLON: GİRDİLER -->
+        <div class="left-column">
+            <!-- Filament Ayarları -->
+            <div class="card">
+                <div class="card-title">
+                    <span>🧵 Baskı & Üretim Adedi</span>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="filamentCost">Filament Gram Fiyatı</label>
+                        <div class="input-wrapper">
+                            <input type="text" inputmode="decimal" id="filamentCost" value="0.65" oninput="calculate()">
+                            <span class="unit">TL/g</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="filamentWeight" style="color: var(--accent-blue); font-weight: bold;">Tüm Tablanın Toplam Ağırlığı</label>
+                        <div class="input-wrapper">
+                            <input type="text" inputmode="decimal" id="filamentWeight" value="25" oninput="calculate()">
+                            <span class="unit">gram</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="batchSize" style="color: var(--accent-green); font-weight: bold;">Tabladaki Ürün Adedi</label>
+                        <div class="input-wrapper">
+                            <input type="text" inputmode="decimal" id="batchSize" value="1" oninput="calculate()">
+                            <span class="unit">Adet</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="extraMaterialCost">Ek Donanım (Tek 1 Ürün İçin)</label>
+                        <div class="input-wrapper">
+                            <input type="text" inputmode="decimal" id="extraMaterialCost" value="0" placeholder="Örn: Halka maliyeti" oninput="calculate()">
+                            <span class="unit">TL</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Elektrik ve Zaman -->
+            <div class="card">
+                <div class="card-title">
+                    <span>⚡ Elektrik & Makine Giderleri</span>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="electricityCost">Elektrik kW/Saat Ücreti</label>
+                        <div class="input-wrapper">
+                            <input type="text" inputmode="decimal" id="electricityCost" value="3.238" oninput="calculate()">
+                            <span class="unit">TL/kWh</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="printerPower">Yazıcı Güç Tüketimi</label>
+                        <div class="input-wrapper">
+                            <input type="text" inputmode="decimal" id="printerPower" value="100" oninput="calculate()">
+                            <span class="unit">Watt</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="printHours" style="color: var(--accent-blue); font-weight: bold;">Tüm Tablanın Baskı Süresi</label>
+                        <div class="input-wrapper">
+                            <input type="text" inputmode="decimal" id="printHours" value="1" oninput="calculate()">
+                            <span class="unit">Saat</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="machineValue">Yazıcı Değeri & Ömrü (Saat)</label>
+                        <div style="display: flex; gap: 5px;">
+                            <input type="text" inputmode="decimal" id="machineValue" value="25000" placeholder="TL" oninput="calculate()" style="width: 60%;">
+                            <input type="text" inputmode="decimal" id="machineLifespan" value="5000" placeholder="Saat" oninput="calculate()" style="width: 40%;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Satış ve Kâr -->
+            <div class="card">
+                <div class="card-title">
+                    <span>📈 Platform & Kâr Hedefi (Tersine Hesaplama)</span>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="failRate">Risk / Fire Payı</label>
+                        <div class="input-wrapper">
+                            <input type="text" inputmode="decimal" id="failRate" value="5" oninput="calculate()">
+                            <span class="unit">%</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="profitMargin" style="color: var(--accent-green); font-weight: bold;">İstenen NET KÂR (Maliyet Üzerinden)</label>
+                        <div class="input-wrapper">
+                            <input type="text" inputmode="decimal" id="profitMargin" value="30" oninput="calculate()">
+                            <span class="unit">%</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="platformComm">Shopier/Platform Komisyon Oranı</label>
+                        <div class="input-wrapper">
+                            <input type="text" inputmode="decimal" id="platformComm" value="5.99" oninput="calculate()">
+                            <span class="unit">%</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="platformFixedFee">Sabit İşlem Ücreti</label>
+                        <div class="input-wrapper">
+                            <input type="text" inputmode="decimal" id="platformFixedFee" value="0.49" oninput="calculate()">
+                            <span class="unit">TL</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="kdvRate" style="color: var(--accent-orange); font-weight: bold;">Ürün Satış KDV Oranı</label>
+                        <div class="input-wrapper">
+                            <input type="text" inputmode="decimal" id="kdvRate" value="20" oninput="calculate()">
+                            <span class="unit">%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SAĞ KOLON: ÖZET VE SONUÇLAR -->
+        <div class="right-column">
+            <!-- Ana İstatistik Kartları -->
+            <div class="summary-cards">
+                <div class="stat-card">
+                    <div class="stat-label">BİRİM ÜRETİM MALİYETİ</div>
+                    <div class="stat-value" id="statCost">0.00 TL</div>
+                </div>
+                <div class="stat-card highlight">
+                    <div class="stat-label">HEDEFLENEN NET KÂR</div>
+                    <div class="stat-value" id="statProfit">0.00 TL</div>
+                </div>
+                <div class="stat-card highlight-price">
+                    <div class="stat-label" id="lblFinalPrice">GEREKEN SATIŞ FİYATI</div>
+                    <div class="stat-value" id="statPrice">0.00 TL</div>
+                </div>
+            </div>
+
+            <!-- Satış Fişi / Nakit Akışı -->
+            <div class="card">
+                <div class="card-title">
+                    <span>🧾 Nakit Akışı Şeması (1 Adet Ürün İçin)</span>
+                </div>
+
+                <table class="breakdown-table">
+                    <thead>
+                        <tr>
+                            <th>Nakit Akışı Adımları</th>
+                            <th>Tutar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="font-weight: bold; font-size: 1.1rem; background-color: rgba(56, 189, 248, 0.1); border-bottom: 2px solid var(--accent-blue);">
+                            <td id="tdFinalPriceLabel">🏷️ 1. Müşterinin Ödediği Fiyat (Vitrin)</td>
+                            <td id="valFinalPrice" style="color: var(--accent-blue);">0.00 TL</td>
+                        </tr>
+                        <tr style="background-color: rgba(244, 63, 94, 0.05);">
+                            <td><span style="color: var(--accent-rose);">📉 2. Shopier/Platform Kesintisi</span><br><span style="font-size:0.75rem; color:var(--text-muted);" id="descPlatformFee">(Komisyon + Sabit Ücret + %20 Hizmet KDV'si)</span></td>
+                            <td id="valPlatformFee" style="color: var(--accent-rose);">- 0.00 TL</td>
+                        </tr>
+                        <tr style="font-weight: 600; background-color: rgba(15, 23, 42, 0.4);">
+                            <td>🏦 3. Banka Hesabınıza Yatan Net Para</td>
+                            <td id="valBankDeposit">0.00 TL</td>
+                        </tr>
+                        <tr>
+                            <td><span style="color: var(--accent-orange);">🏛️ 4. Devlete Ödenecek KDV</span><br><span style="font-size:0.75rem; color:var(--text-muted);">Mahsuplaşma sonrası kalan fark</span></td>
+                            <td id="valKdvToState" style="color: var(--accent-orange);">- 0.00 TL</td>
+                        </tr>
+                        <tr>
+                            <td><span style="color: var(--text-muted);">🛠️ 5. Üretim Maliyetiniz</span><br><span style="font-size:0.75rem; color:var(--text-muted);">Filament, Elektrik, Amortisman, Ekstra</span></td>
+                            <td id="valUnitCost" style="color: var(--text-muted);">- 0.00 TL</td>
+                        </tr>
+                        <tr style="font-weight: bold; font-size: 1.1rem; background-color: rgba(34, 197, 94, 0.1); border-top: 2px solid var(--accent-green);">
+                            <td>🎯 6. CEBE KALAN GERÇEK NET KÂR</td>
+                            <td id="valNetProfit" style="color: var(--accent-green);">0.00 TL</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <!-- KDV Mahsup Kutusu -->
+                <div class="kdv-box" id="kdvBox">
+                    <h4>📝 KDV Mahsup Analizi (Muhasebeci Görünümü)</h4>
+                    <div class="kdv-row">
+                        <span>Müşteriden Alınan KDV (Devlete Borç):</span>
+                        <span id="kdvCollected">0.00 TL</span>
+                    </div>
+                    <div class="kdv-row">
+                        <span>Platform Faturasındaki KDV (Düşülecek):</span>
+                        <span id="kdvDeducted">- 0.00 TL</span>
+                    </div>
+                    <div class="kdv-row total">
+                        <span>Devlete Ödenecek Net KDV Farkı:</span>
+                        <span id="kdvTotalToState">0.00 TL</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kayıtlı Modeller -->
+            <div class="card no-print">
+                <div class="card-title">
+                    <span>💾 Modeli Kaydet & Yazdır</span>
+                </div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label for="modelName">Model / İş Adı</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="modelName" placeholder="Örn: 10'lu Mıknatıslı Anahtarlık">
+                        <button class="btn" onclick="saveModel()" style="width: auto; white-space: nowrap;">Kaydet</button>
+                    </div>
+                </div>
+
+                <div class="saved-list" id="savedList">
+                    <!-- Kaydedilenler js ile buraya eklenecek -->
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button class="btn btn-secondary" onclick="window.print()">🖨️ Yazdır / PDF Al</button>
+                    <button class="btn btn-secondary" onclick="exportCSV()">📥 CSV Aktar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getNumericValue(elementId, defaultValue = 0) {
+        const el = document.getElementById(elementId);
+        if (!el) return defaultValue;
+        let val = el.value.trim().replace(',', '.');
+        const parsed = parseFloat(val);
+        return isNaN(parsed) ? defaultValue : parsed;
+    }
+
+    function calculate() {
+        // Girdileri Al
+        const filamentCost = getNumericValue('filamentCost');
+        const filamentWeight = getNumericValue('filamentWeight');
+        let batchSize = getNumericValue('batchSize', 1);
+        if (batchSize <= 0) batchSize = 1;
+        
+        const extraMaterialCost = getNumericValue('extraMaterialCost'); 
+        const electricityCost = getNumericValue('electricityCost');
+        const printerPower = getNumericValue('printerPower');
+        const printHours = getNumericValue('printHours'); 
+        const machineValue = getNumericValue('machineValue');
+        let machineLifespan = getNumericValue('machineLifespan');
+        if(machineLifespan <= 0) machineLifespan = 1;
+        const failRate = getNumericValue('failRate');
+        
+        const profitMargin = getNumericValue('profitMargin');
+        const platformCommPercent = getNumericValue('platformComm');
+        const platformFixedFee = getNumericValue('platformFixedFee');
+        const kdvRate = getNumericValue('kdvRate');
+
+        // --- ADIM 1: ÜRETİM MALİYETİ (KDV HARİÇ DÜŞÜNÜLÜR) ---
+        const totalFilamentCost = filamentCost * filamentWeight;
+        const totalKwh = (printerPower * printHours) / 1000;
+        const totalElectricityCost = totalKwh * electricityCost;
+        const hourlyDepreciation = machineValue / machineLifespan;
+        const totalDepreciation = hourlyDepreciation * printHours;
+        
+        const subtotalBatchCost = totalFilamentCost + totalElectricityCost + totalDepreciation;
+        const totalRiskCost = subtotalBatchCost * (failRate / 100);
+        const finalBatchCost = subtotalBatchCost + totalRiskCost;
+
+        // BİRİM ÜRETİM MALİYETİ
+        const unitSharedCost = finalBatchCost / batchSize;
+        const unitBaseCost = unitSharedCost + extraMaterialCost;
+
+        // --- ADIM 2: TERSİNE MÜHENDİSLİK (REVERSE ENGINEERING) FİYATLAMA ---
+        // Hedefimiz: Bize net kalacak para = Maliyet + Kâr
+        const targetNetProfit = unitBaseCost * (profitMargin / 100);
+        
+        // Değişkenleri formüle hazırlayalım
+        const C = platformCommPercent / 100;
+        const F = platformFixedFee;
+        const Vs = kdvRate / 100;
+
+        // Formül: Fiyat = (Maliyet + Kar + Sabit_Ücret) / ( (1 / (1 + KDV_Orani)) - Komisyon_Orani )
+        let finalPrice = 0;
+        const denominator = (1 / (1 + Vs)) - C;
+
+        if (denominator <= 0) {
+            finalPrice = 0;
+        } else {
+            finalPrice = (unitBaseCost + targetNetProfit + F) / denominator;
+        }
+
+        // --- ADIM 3: GERÇEKLEŞEN NAKİT AKIŞI (SAĞLAMA) ---
+        // 1. Müşteriden Alınan KDV (Devlete Borç)
+        const salesKdvAmount = finalPrice - (finalPrice / (1 + Vs));
+
+        // 2. Shopier/Platform Komisyon Kesintisi (KDV Dahil Satış Fiyatı Üzerinden)
+        const commissionBase = (finalPrice * C) + F;
+        const commissionKdv = commissionBase * 0.20; // Türkiye'de hizmet faturası KDV'si %20 sabit
+        const totalPlatformDeduction = commissionBase + commissionKdv;
+
+        // 3. Bankaya Yatan
+        const bankDeposit = finalPrice - totalPlatformDeduction;
+
+        // 4. Devlete Ödenecek Net KDV (Mahsuplaşma)
+        let stateKdvToPay = salesKdvAmount - commissionKdv;
+        if(stateKdvToPay < 0) stateKdvToPay = 0; 
+
+        // 5. Elde Kalan Son Para (Gerçek Net Kar)
+        const actualProfit = bankDeposit - stateKdvToPay - unitBaseCost;
+
+        // --- UI GÜNCELLEMELERİ ---
+        const tdFinalPriceLabel = document.getElementById('tdFinalPriceLabel');
+        const kdvBox = document.getElementById('kdvBox');
+        
+        if (kdvRate === 0) {
+            tdFinalPriceLabel.innerText = "🏷️ 1. Müşterinin Ödediği Fiyat (Vergisiz)";
+            kdvBox.style.display = 'none'; 
+        } else {
+            tdFinalPriceLabel.innerText = `🏷️ 1. Müşterinin Ödediği Fiyat (Vitrin - %${kdvRate} KDV'li)`;
+            kdvBox.style.display = 'block';
+        }
+
+        document.getElementById('statCost').innerText = unitBaseCost.toFixed(2) + ' TL';
+        document.getElementById('statProfit').innerText = targetNetProfit.toFixed(2) + ' TL';
+        document.getElementById('statPrice').innerText = finalPrice.toFixed(2) + ' TL';
+
+        document.getElementById('valFinalPrice').innerText = finalPrice.toFixed(2) + ' TL';
+        document.getElementById('valPlatformFee').innerText = '- ' + totalPlatformDeduction.toFixed(2) + ' TL';
+        document.getElementById('valBankDeposit').innerText = bankDeposit.toFixed(2) + ' TL';
+        document.getElementById('valKdvToState').innerText = '- ' + stateKdvToPay.toFixed(2) + ' TL';
+        document.getElementById('valUnitCost').innerText = '- ' + unitBaseCost.toFixed(2) + ' TL';
+        
+        if (denominator <= 0) {
+            document.getElementById('valNetProfit').innerText = "ZARAR!";
+            document.getElementById('valNetProfit').style.color = "var(--accent-rose)";
+        } else {
+            document.getElementById('valNetProfit').innerText = actualProfit.toFixed(2) + ' TL';
+            document.getElementById('valNetProfit').style.color = "var(--accent-green)";
+        }
+
+        // KDV Mahsup Kutusu Verileri (HATA BURADAYDI, commissionKdv olarak DÜZELTİLDİ)
+        document.getElementById('kdvCollected').innerText = salesKdvAmount.toFixed(2) + ' TL';
+        document.getElementById('kdvDeducted').innerText = '- ' + commissionKdv.toFixed(2) + ' TL';
+        document.getElementById('kdvTotalToState').innerText = stateKdvToPay.toFixed(2) + ' TL';
+    }
+
+    // Storage Functions
+    function saveModel() {
+        const nameInput = document.getElementById('modelName');
+        const name = nameInput.value.trim() || 'Adsız Model';
+        
+        const data = {
+            id: Date.now(),
+            name: name,
+            weight: document.getElementById('filamentWeight').value,
+            hours: document.getElementById('printHours').value,
+            batch: document.getElementById('batchSize').value,
+            cost: document.getElementById('statCost').innerText,
+            profit: document.getElementById('statProfit').innerText,
+            price: document.getElementById('statPrice').innerText,
+            date: new Date().toLocaleDateString('tr-TR')
+        };
+
+        let saved = JSON.parse(localStorage.getItem('3d_models_v10') || '[]');
+        saved.push(data);
+        localStorage.setItem('3d_models_v10', JSON.stringify(saved));
+        
+        nameInput.value = '';
+        renderSavedModels();
+    }
+
+    function deleteModel(id) {
+        let saved = JSON.parse(localStorage.getItem('3d_models_v10') || '[]');
+        saved = saved.filter(m => m.id !== id);
+        localStorage.setItem('3d_models_v10', JSON.stringify(saved));
+        renderSavedModels();
+    }
+
+    function renderSavedModels() {
+        const container = document.getElementById('savedList');
+        let saved = JSON.parse(localStorage.getItem('3d_models_v10') || '[]');
+        
+        if (saved.length === 0) {
+            container.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:10px;">Kaydedilmiş model bulunmuyor.</div>';
+            return;
+        }
+
+        container.innerHTML = saved.map(m => `
+            <div class="saved-item">
+                <div>
+                    <div class="saved-item-title">${m.name} <span style="font-size: 0.7rem; color: var(--accent-purple);">(${m.batch} Adet)</span></div>
+                    <div class="saved-item-sub">Ürt. Mal: ${m.cost} | Net Kâr: ${m.profit}</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="text-align: right;">
+                        <span style="font-weight:bold; color:var(--accent-blue); display:block;">${m.price}</span>
+                        <span style="font-size:0.65rem; color:var(--text-muted);">Satış Fiyatı</span>
+                    </div>
+                    <button class="delete-btn" onclick="deleteModel(${m.id})">×</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function exportCSV() {
+        let saved = JSON.parse(localStorage.getItem('3d_models_v10') || '[]');
+        if (saved.length === 0) {
+            alert('Dışa aktarılacak kayıtlı model yok!');
+            return;
+        }
+
+        let csv = 'Model Adi;Tabla Urun Adedi;Toplam Gramaj;Toplam Baski Suresi;Birim Uretim Maliyeti;Net Kar;Satis Fiyati;Tarih\n';
+        saved.forEach(m => {
+            csv += `"${m.name}";"${m.batch}";"${m.weight}";"${m.hours}";"${m.cost}";"${m.profit}";"${m.price}";"${m.date}"\n`;
+        });
+
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = '3d_baski_maliyet_gecmisi_v10.csv';
+        link.click();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        calculate();
+        renderSavedModels();
+    });
+</script>
+
+</body>
+</html>
